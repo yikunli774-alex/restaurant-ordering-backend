@@ -1,0 +1,61 @@
+name: restaurant-ordering
+
+# Shared definition for the two identical app instances (app-1, app-2).
+x-app: &app
+  image: restaurant-ordering-backend:local
+  build:
+    context: .
+  environment:
+    SPRING_PROFILES_ACTIVE: docker
+    DB_USERNAME: ${DB_USERNAME:-ordering}
+    DB_PASSWORD: ${DB_PASSWORD:-ordering}
+  depends_on:
+    mysql:
+      condition: service_healthy
+  restart: unless-stopped
+  healthcheck:
+    test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/actuator/health/readiness"]
+    interval: 10s
+    timeout: 3s
+    retries: 12
+    start_period: 40s
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: restaurant_ordering
+      MYSQL_USER: ${DB_USERNAME:-ordering}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-ordering}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-ordering-root}
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci"]
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+
+  app-1:
+    <<: *app
+
+  app-2:
+    <<: *app
+
+  nginx:
+    image: nginx:1.28-alpine
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      app-1:
+        condition: service_healthy
+      app-2:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  mysql-data:

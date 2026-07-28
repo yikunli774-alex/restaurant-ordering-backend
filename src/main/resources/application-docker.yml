@@ -1,0 +1,7 @@
+# Active only when SPRING_PROFILES_ACTIVE=docker (set in compose.yaml).
+# Inside Docker the database is reachable by the compose service name "mysql".
+spring:
+  datasource:
+    url: jdbc:mysql://mysql:3306/restaurant_ordering?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:ordering}
+    password: ${DB_PASSWORD:ordering}

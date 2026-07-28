@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Docker / local env (never commit secrets) ###
+.env
+docker-data/
+*.log
