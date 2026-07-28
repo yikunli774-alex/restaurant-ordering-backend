@@ -1,6 +1,8 @@
 package io.github.yikunli774.ordering.common.config;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import io.github.yikunli774.ordering.staff.StaffJwtAuthenticationConverter;
+import io.github.yikunli774.ordering.staff.StaffSessionStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,33 +17,35 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 
 /**
- * The heart of staff security. It defines:
- *   - how passwords are hashed ({@link PasswordEncoder});
- *   - how JWT access tokens are signed and verified ({@link JwtEncoder}/{@link JwtDecoder});
- *   - which endpoints are public and which need a valid token (the filter chain);
- *   - how the token's "authorities" claim maps to Spring authorities for @PreAuthorize.
+ * Staff security wiring:
+ *   - password hashing ({@link PasswordEncoder});
+ *   - JWT signing/verification ({@link JwtEncoder}/{@link JwtDecoder}, HMAC-SHA256);
+ *   - which endpoints are public vs. require a valid token (the filter chain);
+ *   - authentication delegated to {@link StaffJwtAuthenticationConverter}, which also
+ *     checks the Redis session so revoked tokens are rejected immediately.
  */
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    /** BCrypt-based, prefix-tagged encoder so the algorithm can evolve later. */
     @Bean
     PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            StaffSessionStore sessionStore) throws Exception {
+        StaffJwtAuthenticationConverter jwtAuthenticationConverter =
+                new StaffJwtAuthenticationConverter(sessionStore);
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -53,7 +57,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt
-                        .jwtAuthenticationConverter(jwtAuthenticationConverter())));
+                        .jwtAuthenticationConverter(jwtAuthenticationConverter)));
         return http.build();
     }
 
@@ -71,15 +75,5 @@ public class SecurityConfig {
 
     private static SecretKeySpec hmacKey(String secret) {
         return new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-    }
-
-    /** Read the custom "authorities" claim and use its values verbatim (e.g. "order:read", "ROLE_MANAGER"). */
-    private static JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter authorities = new JwtGrantedAuthoritiesConverter();
-        authorities.setAuthoritiesClaimName("authorities");
-        authorities.setAuthorityPrefix("");
-        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(authorities);
-        return converter;
     }
 }

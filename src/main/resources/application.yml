@@ -15,6 +15,10 @@ spring:
     validate-migration-naming: true
   lifecycle:
     timeout-per-shutdown-phase: 20s
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 server:
   port: ${SERVER_PORT:8080}
@@ -42,6 +46,8 @@ security:
     # HS256 needs a key of at least 32 bytes. Override JWT_SECRET in real deployments.
     secret: ${JWT_SECRET:dev-only-insecure-jwt-secret-change-me-please-0123456789}
     access-ttl-seconds: ${JWT_ACCESS_TTL:900}
+  session:
+    ttl-seconds: ${SESSION_TTL:900}
   bootstrap:
     manager-username: ${BOOTSTRAP_MANAGER_USERNAME:manager}
     manager-password: ${BOOTSTRAP_MANAGER_PASSWORD:manager123}
