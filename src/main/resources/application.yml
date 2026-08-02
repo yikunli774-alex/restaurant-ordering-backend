@@ -48,6 +48,8 @@ security:
     access-ttl-seconds: ${JWT_ACCESS_TTL:900}
   session:
     ttl-seconds: ${SESSION_TTL:900}
+  table-code:
+    secret: ${TABLE_CODE_SECRET:dev-only-insecure-table-code-secret-change-me-0123456789}
   bootstrap:
     manager-username: ${BOOTSTRAP_MANAGER_USERNAME:manager}
     manager-password: ${BOOTSTRAP_MANAGER_PASSWORD:manager123}

@@ -1,6 +1,7 @@
 package io.github.yikunli774.ordering.table;
 
 import io.github.yikunli774.ordering.support.AbstractIntegrationTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -17,6 +18,12 @@ class TableSessionInvariantIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private JdbcTemplate jdbc;
+
+    @BeforeEach
+    void clean() {
+        jdbc.update("DELETE FROM participant");
+        jdbc.update("DELETE FROM table_session");
+    }
 
     @Test
     void aTableCanHaveAtMostOneActiveSession() {

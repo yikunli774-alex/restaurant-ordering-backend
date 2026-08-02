@@ -5,6 +5,7 @@ import io.github.yikunli774.ordering.staff.StaffJwtAuthenticationConverter;
 import io.github.yikunli774.ordering.staff.StaffSessionStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -51,6 +52,8 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/staff/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/table-sessions/join").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/table-sessions/*").permitAll()
                         .requestMatchers(
                                 "/actuator/health/**",
                                 "/v3/api-docs", "/v3/api-docs/**",
