@@ -1,7 +1,11 @@
 package io.github.yikunli774.ordering.table;
 
+import io.github.yikunli774.ordering.common.api.ApiErrorCode;
+import io.github.yikunli774.ordering.common.api.ApiException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,7 +35,12 @@ public class TableSessionController {
     }
 
     @GetMapping("/{sessionId}")
-    public SessionResponse get(@PathVariable long sessionId) {
+    public SessionResponse get(@PathVariable long sessionId,
+                               @AuthenticationPrincipal ParticipantPrincipal participant) {
+        if (participant.sessionId() != sessionId) {
+            throw new ApiException(HttpStatus.FORBIDDEN, ApiErrorCode.PARTICIPANT_FORBIDDEN,
+                    "This session does not belong to you");
+        }
         TableSessionRepository.SessionView view = service.getSession(sessionId);
         return new SessionResponse(view.id(), view.tableCode(), view.status(), view.billAmount());
     }

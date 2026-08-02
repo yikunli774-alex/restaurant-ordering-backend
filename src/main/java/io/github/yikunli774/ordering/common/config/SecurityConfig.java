@@ -3,6 +3,8 @@ package io.github.yikunli774.ordering.common.config;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import io.github.yikunli774.ordering.staff.StaffJwtAuthenticationConverter;
 import io.github.yikunli774.ordering.staff.StaffSessionStore;
+import io.github.yikunli774.ordering.table.ParticipantAuthenticationFilter;
+import io.github.yikunli774.ordering.table.TableSessionRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
@@ -19,6 +21,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -44,23 +47,29 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            StaffSessionStore sessionStore) throws Exception {
+            StaffSessionStore sessionStore,
+            TableSessionRepository tableSessionRepository) throws Exception {
         StaffJwtAuthenticationConverter jwtAuthenticationConverter =
                 new StaffJwtAuthenticationConverter(sessionStore);
+        ParticipantAuthenticationFilter participantAuthenticationFilter =
+                new ParticipantAuthenticationFilter(tableSessionRepository);
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/staff/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/table-sessions/join").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/table-sessions/*").permitAll()
                         .requestMatchers(
                                 "/actuator/health/**",
                                 "/v3/api-docs", "/v3/api-docs/**",
                                 "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        // Customers (participant token) vs staff (JWT) are kept strictly separate.
+                        .requestMatchers("/api/v1/table-sessions/**").hasAuthority("ROLE_PARTICIPANT")
+                        .requestMatchers("/api/v1/staff/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_KITCHEN")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt
-                        .jwtAuthenticationConverter(jwtAuthenticationConverter)));
+                        .jwtAuthenticationConverter(jwtAuthenticationConverter)))
+                .addFilterBefore(participantAuthenticationFilter, AuthorizationFilter.class);
         return http.build();
     }
 

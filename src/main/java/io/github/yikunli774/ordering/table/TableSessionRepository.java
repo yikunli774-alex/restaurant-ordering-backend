@@ -74,6 +74,17 @@ public class TableSessionRepository {
         return jdbc.queryForObject("SELECT id FROM participant WHERE token_hash = ?", Long.class, tokenHash);
     }
 
+    public record ParticipantIdentity(long participantId, long sessionId) {
+    }
+
+    public Optional<ParticipantIdentity> findParticipant(String tokenHash) {
+        return jdbc.query(
+                        "SELECT id, table_session_id FROM participant WHERE token_hash = ?",
+                        (rs, i) -> new ParticipantIdentity(rs.getLong("id"), rs.getLong("table_session_id")),
+                        tokenHash)
+                .stream().findFirst();
+    }
+
     public Optional<SessionView> findSession(long sessionId) {
         return jdbc.query("""
                         SELECT ts.id, dt.code AS table_code, ts.status, ts.bill_amount

@@ -93,16 +93,42 @@ class TableJoinIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void getSessionReturnsStatus() {
-        long sessionId = joinSessionId(signer.sign("T02"));
+    void getSessionReturnsStatusForItsParticipant() {
+        Joined joined = join("T02");
         RestAssured.given()
                 .port(port)
+                .header("X-Participant-Token", joined.participantToken())
                 .when()
-                .get("/api/v1/table-sessions/" + sessionId)
+                .get("/api/v1/table-sessions/" + joined.sessionId())
                 .then()
                 .statusCode(200)
                 .body("tableCode", equalTo("T02"))
                 .body("status", equalTo("OPEN"));
+    }
+
+    @Test
+    void getSessionWithoutParticipantTokenIsUnauthorized() {
+        Joined joined = join("T02");
+        RestAssured.given()
+                .port(port)
+                .when()
+                .get("/api/v1/table-sessions/" + joined.sessionId())
+                .then()
+                .statusCode(401);
+    }
+
+    @Test
+    void participantCannotViewAnotherTablesSession() {
+        Joined mine = join("T02");
+        Joined other = join("T01");
+        RestAssured.given()
+                .port(port)
+                .header("X-Participant-Token", mine.participantToken())
+                .when()
+                .get("/api/v1/table-sessions/" + other.sessionId())
+                .then()
+                .statusCode(403)
+                .body("code", equalTo("PARTICIPANT_FORBIDDEN"));
     }
 
     @Test
@@ -123,6 +149,18 @@ class TableJoinIntegrationTest extends AbstractIntegrationTest {
                 .statusCode(200)
                 .body("code", hasItems("T01", "T02"))
                 .body("qrToken", everyItem(notNullValue()));
+    }
+
+    @Test
+    void participantTokenCannotAccessStaffEndpoints() {
+        Joined joined = join("T02");
+        RestAssured.given()
+                .port(port)
+                .header("X-Participant-Token", joined.participantToken())
+                .when()
+                .get("/api/v1/staff/tables")
+                .then()
+                .statusCode(403);
     }
 
     @Test
@@ -157,6 +195,22 @@ class TableJoinIntegrationTest extends AbstractIntegrationTest {
                 Integer.class, sessionIds.iterator().next());
         assertThat(activeSessions).isEqualTo(1);
         assertThat(participants).isEqualTo(threads);
+    }
+
+    private Joined join(String tableCode) {
+        var jsonPath = RestAssured.given()
+                .port(port)
+                .contentType("application/json")
+                .body("{\"tableToken\":\"" + signer.sign(tableCode) + "\"}")
+                .when()
+                .post("/api/v1/table-sessions/join")
+                .then()
+                .statusCode(200)
+                .extract().jsonPath();
+        return new Joined(jsonPath.getLong("sessionId"), jsonPath.getString("participantToken"));
+    }
+
+    private record Joined(long sessionId, String participantToken) {
     }
 
     private long joinSessionId(String tableToken) {
