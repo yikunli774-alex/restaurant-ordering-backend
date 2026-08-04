@@ -44,6 +44,11 @@ public final class GlobalExceptionHandler {
         return baseProblem(exception.status(), exception.code(), exception.getMessage());
     }
 
+    @ExceptionHandler(org.springframework.web.bind.MissingRequestHeaderException.class)
+    ProblemDetail handleMissingHeader(org.springframework.web.bind.MissingRequestHeaderException exception) {
+        return baseProblem(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED, exception.getMessage());
+    }
+
     /** Anything unexpected: log the real cause, but never leak internals to the client. */
     /** A method-level @PreAuthorize denial reaches here; render it as 403, not 500. */
     @ExceptionHandler(AccessDeniedException.class)

@@ -85,6 +85,12 @@ public class TableSessionRepository {
                 .stream().findFirst();
     }
 
+    public Optional<String> findStatus(long sessionId) {
+        return jdbc.query("SELECT status FROM table_session WHERE id = ?",
+                        (rs, i) -> rs.getString("status"), sessionId)
+                .stream().findFirst();
+    }
+
     public Optional<SessionView> findSession(long sessionId) {
         return jdbc.query("""
                         SELECT ts.id, dt.code AS table_code, ts.status, ts.bill_amount

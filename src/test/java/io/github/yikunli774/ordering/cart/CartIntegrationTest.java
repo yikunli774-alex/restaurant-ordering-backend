@@ -33,8 +33,7 @@ class CartIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void clean() {
-        jdbc.update("DELETE FROM participant");
-        jdbc.update("DELETE FROM table_session");
+        io.github.yikunli774.ordering.support.TestData.resetSessions(jdbc);
         jdbc.update("UPDATE menu_item SET status = 'AVAILABLE' WHERE code IN ('D01','D02','D03','D04')");
     }
 

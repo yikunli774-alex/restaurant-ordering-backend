@@ -36,8 +36,7 @@ class TableJoinIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void clean() {
-        jdbc.update("DELETE FROM participant");
-        jdbc.update("DELETE FROM table_session");
+        io.github.yikunli774.ordering.support.TestData.resetSessions(jdbc);
     }
 
     @Test
