@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -44,6 +45,12 @@ public final class GlobalExceptionHandler {
     }
 
     /** Anything unexpected: log the real cause, but never leak internals to the client. */
+    /** A method-level @PreAuthorize denial reaches here; render it as 403, not 500. */
+    @ExceptionHandler(AccessDeniedException.class)
+    ProblemDetail handleAccessDenied(AccessDeniedException exception) {
+        return baseProblem(HttpStatus.FORBIDDEN, ApiErrorCode.PERMISSION_DENIED, "Access denied");
+    }
+
     @ExceptionHandler(Exception.class)
     ProblemDetail handleUnexpected(Exception exception) {
         log.error("Unhandled request failure", exception);

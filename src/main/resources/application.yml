@@ -53,3 +53,5 @@ security:
   bootstrap:
     manager-username: ${BOOTSTRAP_MANAGER_USERNAME:manager}
     manager-password: ${BOOTSTRAP_MANAGER_PASSWORD:manager123}
+    kitchen-username: ${BOOTSTRAP_KITCHEN_USERNAME:kitchen}
+    kitchen-password: ${BOOTSTRAP_KITCHEN_PASSWORD:kitchen123}

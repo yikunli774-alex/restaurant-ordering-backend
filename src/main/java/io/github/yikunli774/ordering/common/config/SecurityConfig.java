@@ -65,7 +65,9 @@ public class SecurityConfig {
                                 "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         // Customers (participant token) vs staff (JWT) are kept strictly separate.
                         .requestMatchers("/api/v1/table-sessions/**").hasAuthority("ROLE_PARTICIPANT")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/menu-items").hasAuthority("ROLE_PARTICIPANT")
                         .requestMatchers("/api/v1/staff/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_KITCHEN")
+                        .requestMatchers("/api/v1/management/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_KITCHEN")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt
                         .jwtAuthenticationConverter(jwtAuthenticationConverter)))
