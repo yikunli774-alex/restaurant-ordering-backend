@@ -55,3 +55,6 @@ security:
     manager-password: ${BOOTSTRAP_MANAGER_PASSWORD:manager123}
     kitchen-username: ${BOOTSTRAP_KITCHEN_USERNAME:kitchen}
     kitchen-password: ${BOOTSTRAP_KITCHEN_PASSWORD:kitchen123}
+
+cart:
+  ttl-seconds: ${CART_TTL:14400}

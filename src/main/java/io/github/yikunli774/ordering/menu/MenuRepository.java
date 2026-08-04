@@ -73,6 +73,31 @@ public class MenuRepository {
                 available, menuItemId);
     }
 
+    /** Just enough to price a cart line and check availability. */
+    public record PricedItem(long id, String code, String name, BigDecimal price, String status) {
+    }
+
+    public Optional<PricedItem> findPricedById(long id) {
+        return jdbc.query(
+                "SELECT id, code, name, price, status FROM menu_item WHERE id = ?",
+                this::mapPriced, id).stream().findFirst();
+    }
+
+    public List<PricedItem> findPricedByIds(java.util.Collection<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        String placeholders = String.join(",", java.util.Collections.nCopies(ids.size(), "?"));
+        return jdbc.query(
+                "SELECT id, code, name, price, status FROM menu_item WHERE id IN (" + placeholders + ")",
+                this::mapPriced, ids.toArray());
+    }
+
+    private PricedItem mapPriced(java.sql.ResultSet rs, int rowNum) throws java.sql.SQLException {
+        return new PricedItem(rs.getLong("id"), rs.getString("code"),
+                rs.getString("name"), rs.getBigDecimal("price"), rs.getString("status"));
+    }
+
     private String adminSelect() {
         return """
                 SELECT m.id, m.code, m.name, m.category, m.price, m.status,
