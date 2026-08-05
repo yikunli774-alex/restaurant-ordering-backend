@@ -34,4 +34,4 @@ jobs:
       # The Dockerfile copies the jar produced by the verify step above.
       # GitHub's path is ASCII, so the default BuildKit builder works here.
       - name: Build application image
-        run: docker build --tag restaurant-ordering:${{ github.sha }} .
+        run: docker build --tag roundtable:${{ github.sha }} .

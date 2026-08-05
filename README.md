@@ -1,4 +1,8 @@
-# Restaurant Ordering Backend (桌面二维码点单系统)
+# RoundTable (桌面二维码点单系统)
+
+> **RoundTable** — a concurrency-safe QR dine-in ordering backend. The name is a
+> double entendre: a table's party shares one *round table* session, and orders
+> arrive in *rounds* (加菜) settled by a single bill.
 
 API-only Java backend for concurrency-safe dine-in QR-code ordering. A party scans
 a table QR code, joins a shared session, orders dishes in **multiple rounds (加菜)**,
@@ -34,7 +38,7 @@ bill/checkout, kitchen) are added as independently reviewed vertical slices.
 ```bash
 cp .env.example .env
 ./mvnw -DskipTests package
-DOCKER_BUILDKIT=0 docker build -t restaurant-ordering-backend:local .
+DOCKER_BUILDKIT=0 docker build -t roundtable:local .
 docker compose up -d
 ./scripts/smoke-test.sh
 ```

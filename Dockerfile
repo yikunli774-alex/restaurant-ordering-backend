@@ -15,7 +15,7 @@ RUN apt-get update \
     && useradd --system --uid 10001 --gid ordering --home /application ordering
 
 WORKDIR /application
-COPY --chown=ordering:ordering target/restaurant-ordering-backend-*.jar application.jar
+COPY --chown=ordering:ordering target/roundtable-*.jar application.jar
 
 USER ordering
 EXPOSE 8080

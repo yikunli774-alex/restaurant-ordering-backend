@@ -2,7 +2,7 @@ name: restaurant-ordering
 
 # Shared definition for the two identical app instances (app-1, app-2).
 x-app: &app
-  image: restaurant-ordering-backend:local
+  image: roundtable:local
   build:
     context: .
   environment:

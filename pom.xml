@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>io.github.yikunli774</groupId>
-	<artifactId>restaurant-ordering-backend</artifactId>
+	<artifactId>roundtable</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>restaurant-ordering-backend</name>
-	<description/>
+	<name>roundtable</name>
+	<description>RoundTable — concurrency-safe QR dine-in ordering backend</description>
 	<url/>
 	<licenses>
 		<license/>
