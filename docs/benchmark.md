@@ -37,7 +37,7 @@ docker info >/dev/null   # 需要 Docker 在跑
 
 **中文**:为二维码点单后端实现并发安全的库存预留;用 1000 并发(Java 21 虚拟线程 + 真 MySQL)压测证明:朴素「读-改-写」在热点行上超卖 17%、库存被压成负数,而条件更新(CAS)方案精确履约 100 份、零超卖,吞吐约 7.6k 次/秒(P99 126ms)。
 
-**English (for résumé)**:Prevented overselling by reserving inventory with a single conditional UPDATE instead of reading stock and writing it back; under 1,000 concurrent requests on one stock row (Java 21 virtual threads, real MySQL), the naive version sold 117 of 100 units and drove stock to −17, while the conditional version sold exactly 100 at ~7,600 reservations per second with P99 latency of 126 ms.
+**English (for résumé)**:Eliminated inventory oversell under 1,000 concurrent requests by replacing read-modify-write logic with atomic conditional UPDATEs plus idempotency keys; benchmarked the naive approach overselling 17% with stock corrupted to −17, vs. 100/100 fulfilled at 7,600 reservations/sec (P99 126 ms).
 
 ## 项目里其它并发正确性证据(集成测试,不是压测但同样是并发验证)
 
