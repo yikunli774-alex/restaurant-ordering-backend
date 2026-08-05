@@ -17,6 +17,7 @@ public final class TestData {
         jdbc.update("DELETE FROM order_item");
         jdbc.update("DELETE FROM inventory_ledger");
         jdbc.update("DELETE FROM api_idempotency");
+        jdbc.update("DELETE FROM payment");
         jdbc.update("DELETE FROM order_round");
         jdbc.update("DELETE FROM participant");
         jdbc.update("DELETE FROM table_session");
