@@ -33,4 +33,21 @@ public class InventoryRepository {
                 """, menuItemId, -quantity, operationId);
         return true;
     }
+
+    /** Mirror of reserve: return reserved stock to available (used when a round is cancelled). */
+    public boolean release(long menuItemId, int quantity, String operationId) {
+        int rows = jdbc.update("""
+                UPDATE inventory
+                SET available = available + ?, reserved = reserved - ?, version = version + 1
+                WHERE menu_item_id = ? AND reserved >= ?
+                """, quantity, quantity, menuItemId, quantity);
+        if (rows == 0) {
+            return false;
+        }
+        jdbc.update("""
+                INSERT INTO inventory_ledger (menu_item_id, delta, reason, operation_id)
+                VALUES (?, ?, 'RELEASE', ?)
+                """, menuItemId, quantity, operationId);
+        return true;
+    }
 }

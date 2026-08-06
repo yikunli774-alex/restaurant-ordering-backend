@@ -27,12 +27,19 @@ public class MenuService {
         return repository.findForStaff();
     }
 
+    public MenuRepository.MenuItemView detail(long id) {
+        return repository.findCustomerItemById(id)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.NOT_FOUND, ApiErrorCode.RESOURCE_NOT_FOUND, "Menu item not found"));
+    }
+
     @Transactional
-    public long create(String code, String name, String category, BigDecimal price, int initialStock) {
+    public long create(String code, String name, String category, BigDecimal price, int initialStock,
+                       String description, String imageUrl) {
         long storeId = repository.defaultStoreId();
         long id;
         try {
-            id = repository.createMenuItem(storeId, code, name, category, price);
+            id = repository.createMenuItem(storeId, code, name, category, price, description, imageUrl);
         } catch (DuplicateKeyException e) {
             throw new ApiException(HttpStatus.CONFLICT, ApiErrorCode.RESOURCE_ALREADY_EXISTS,
                     "A menu item with code '" + code + "' already exists");

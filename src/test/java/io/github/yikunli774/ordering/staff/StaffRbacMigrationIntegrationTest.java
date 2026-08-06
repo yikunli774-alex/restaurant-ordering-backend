@@ -14,8 +14,9 @@ class StaffRbacMigrationIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void seedsRolePermissionsForManagerAndKitchen() {
-        assertThat(permissionCountForRole("MANAGER")).isEqualTo(8);
-        assertThat(permissionCountForRole("KITCHEN")).isEqualTo(5);
+        // V2 seeded 8/5; V7 added order:cancel to both.
+        assertThat(permissionCountForRole("MANAGER")).isEqualTo(9);
+        assertThat(permissionCountForRole("KITCHEN")).isEqualTo(6);
     }
 
     private Integer permissionCountForRole(String roleCode) {

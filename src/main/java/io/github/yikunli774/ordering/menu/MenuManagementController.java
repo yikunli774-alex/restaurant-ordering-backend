@@ -47,7 +47,7 @@ public class MenuManagementController {
         long id = menuService.create(
                 request.code(), request.name(),
                 request.category() == null ? "DEFAULT" : request.category(),
-                request.price(), request.initialStock());
+                request.price(), request.initialStock(), request.description(), request.imageUrl());
         return new CreatedResponse(id);
     }
 
@@ -70,7 +70,9 @@ public class MenuManagementController {
             @NotBlank String name,
             String category,
             @NotNull @PositiveOrZero BigDecimal price,
-            @PositiveOrZero int initialStock) {
+            @PositiveOrZero int initialStock,
+            String description,
+            String imageUrl) {
     }
 
     public record UpdateMenuItemRequest(

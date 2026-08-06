@@ -16,9 +16,9 @@ public class MenuRepository {
         this.jdbc = jdbc;
     }
 
-    /** What a customer sees: everything not delisted, with a sold-out flag. */
-    public record MenuItemView(long id, String code, String name, String category,
-                               BigDecimal price, boolean soldOut) {
+    /** What a customer sees: everything not delisted, with a sold-out flag + detail fields. */
+    public record MenuItemView(long id, String code, String name, String category, BigDecimal price,
+                               boolean soldOut, String description, String imageUrl) {
     }
 
     /** What staff sees: full status plus current stock. */
@@ -27,16 +27,24 @@ public class MenuRepository {
     }
 
     public List<MenuItemView> findForCustomer() {
-        return jdbc.query("""
-                SELECT id, code, name, category, price, status
-                FROM menu_item
-                WHERE status <> 'DELISTED'
-                ORDER BY category, code
-                """,
-                (rs, i) -> new MenuItemView(
-                        rs.getLong("id"), rs.getString("code"), rs.getString("name"),
-                        rs.getString("category"), rs.getBigDecimal("price"),
-                        "SOLD_OUT".equals(rs.getString("status"))));
+        return jdbc.query(customerSelect() + " WHERE status <> 'DELISTED' ORDER BY category, code", this::mapCustomer);
+    }
+
+    public Optional<MenuItemView> findCustomerItemById(long id) {
+        return jdbc.query(customerSelect() + " WHERE id = ? AND status <> 'DELISTED'", this::mapCustomer, id)
+                .stream().findFirst();
+    }
+
+    private String customerSelect() {
+        return "SELECT id, code, name, category, price, status, description, image_url FROM menu_item";
+    }
+
+    private MenuItemView mapCustomer(java.sql.ResultSet rs, int rowNum) throws java.sql.SQLException {
+        return new MenuItemView(
+                rs.getLong("id"), rs.getString("code"), rs.getString("name"),
+                rs.getString("category"), rs.getBigDecimal("price"),
+                "SOLD_OUT".equals(rs.getString("status")),
+                rs.getString("description"), rs.getString("image_url"));
     }
 
     public List<MenuItemAdminView> findForStaff() {
@@ -51,9 +59,12 @@ public class MenuRepository {
         return jdbc.queryForObject("SELECT MIN(id) FROM store", Long.class);
     }
 
-    public long createMenuItem(long storeId, String code, String name, String category, BigDecimal price) {
-        jdbc.update("INSERT INTO menu_item (store_id, code, name, category, price) VALUES (?, ?, ?, ?, ?)",
-                storeId, code, name, category, price);
+    public long createMenuItem(long storeId, String code, String name, String category,
+                               BigDecimal price, String description, String imageUrl) {
+        jdbc.update("""
+                INSERT INTO menu_item (store_id, code, name, category, price, description, image_url)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, storeId, code, name, category, price, description, imageUrl);
         return jdbc.queryForObject(
                 "SELECT id FROM menu_item WHERE store_id = ? AND code = ?", Long.class, storeId, code);
     }

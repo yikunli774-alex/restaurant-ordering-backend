@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -28,6 +29,22 @@ class MenuIntegrationTest extends AbstractIntegrationTest {
                 .then()
                 .statusCode(200)
                 .body("code", hasItems("D01", "D02", "D03", "D04"));
+    }
+
+    @Test
+    void customerCanViewMenuItemDetail() {
+        String token = participantToken("T02");
+        int id = RestAssured.given().port(port).header("X-Participant-Token", token)
+                .when().get("/api/v1/menu-items")
+                .then().statusCode(200)
+                .extract().jsonPath().getInt("find { it.code == 'D01' }.id");
+
+        RestAssured.given().port(port).header("X-Participant-Token", token)
+                .when().get("/api/v1/menu-items/" + id)
+                .then().statusCode(200)
+                .body("code", equalTo("D01"))
+                .body("description", notNullValue())
+                .body("imageUrl", notNullValue());
     }
 
     @Test
